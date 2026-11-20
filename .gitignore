@@ -4,3 +4,7 @@ bot/.env.*
 node_modules/
 bot/node_modules/
 webapp/node_modules/
+webapp/*.bak*
+webapp/cloudflared.exe
+webapp/fix3d.js
+webapp/patch3d.js
