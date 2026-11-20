@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Тетрис</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body{margin:0;background:#17212b;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;padding-bottom:20px}
+    #b{display:grid;grid-template-columns:repeat(10,20px);grid-template-rows:repeat(20,20px);gap:1px;background:#232e3c;padding:2px;margin-top:10px}
+    .c{width:20px;height:20px;background:#0e1621}
+    .blk{background:#007bff}
+    .ctrl{margin-top:15px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;width:220px}
+    button{padding:10px;font-size:1.2em;background:#007bff;color:#fff;border:none;border-radius:5px;cursor:pointer;flex:1 1 40%}
+    #r,#g,#l{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(23,33,43,.98);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px;text-align:center}
+    #g,#l{display:none}
+    h2,h3{color:#007bff;margin:10px 0}
+    .btn{margin-top:20px;padding:10px;width:200px;flex:none}
+    .logo{font-size:32px;font-weight:900;letter-spacing:4px;margin-bottom:15px;text-shadow:2px 2px 4px #000}
+    .logo span{display:inline-block}
+    .t{color:#00f0f0}.e{color:#f0f000}.t2{color:#a000f0}.r{color:#00f000}.i{color:#f00000}.s{color:#0000f0}
+    #c{display:flex;justify-content:center;gap:10px;margin-top:5px;font-size:14px;flex-wrap:wrap}
+    .ci{display:flex;align-items:center;gap:3px}
+    .cb{width:12px;height:12px;border-radius:2px}
+    .done{border:2px solid #fff;box-shadow:0 0 5px #fff}
+    #sc{margin-top:5px;font-size:1.1em;color:#fff;display:flex;gap:15px}
+    .st{color:#007bff;font-weight:bold}
+    .lb{background:#a000f0;padding:2px 8px;border-radius:10px;color:#fff;font-weight:bold}
+    .goal{font-size:14px;line-height:1.5;max-width:320px;text-align:left;margin:10px 0}
+  </style>
+</head>
+<body>
+<div id="deltaSplash" style="position:fixed;inset:0;background:#000;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column">
+  <div style="font-size:72px;color:#00ff41;font-family:monospace;text-shadow:0 0 20px #00ff41">Δ</div>
+  <div style="color:#00ff41;font-size:12px;margin-top:8px;letter-spacing:4px">DELTA</div>
+</div>
+<script>
+setTimeout(function(){
+  var s = document.getElementById('deltaSplash');
+  if(s){ s.style.transition='opacity 0.4s'; s.style.opacity='0'; setTimeout(function(){ s.style.display='none'; }, 400); }
+}, 2000);
+</script>
+
+<!-- deltaMark removed --><div id="deltaMark" style="display:none" style="position:fixed;top:8px;right:10px;z-index:50;font-family:monospace;font-size:18px;color:#0f0;text-shadow:0 0 6px #0f0;opacity:0.7;pointer-events:none">Δ</div>
+
+<div id="r">
+  <div class="logo">
+    <span class="t">Т</span><span class="e">Е</span><span class="t2">Т</span><span class="r">Р</span><span class="i">И</span><span class="s">С</span>
+  </div>
+  <div style="background:rgba(0,123,255,.2);padding:5px 15px;border-radius:10px;margin-bottom:15px;font-size:14px">
+    👥 Игроков: <span id="rp" style="font-weight:bold;color:#00f0f0">0</span>
+  </div>
+  <div class="goal">
+    <b>📜 ПРАВИЛА:</b><br>
+    1. Собирайте линии и квадраты 3x3.<br>
+    2. За линию одного цвета — двойные очки!<br>
+    3. Сбор квадрата 3x3 <b>сбрасывает скорость</b> падения!<br>
+    4. Проходите 5 уровней.
+  </div>
+  <button class="btn" id="s1">Играть!</button>
+</div>
+
+<div id="l">
+  <h2 id="lt" style="color:#00f0f0">Уровень 1</h2>
+  <div class="goal" id="lg">Соберите 3 зелёных квадрата</div>
+  <button class="btn" id="s2">Вперёд!</button>
+</div>
+
+<div id="g">
+  <h2>Игра окончена!</h2>
+  <p style="font-size:18px">Очки: <span id="fs">0</span></p>
+  <p style="font-size:16px;color:#a000f0" id="fl"></p>
+  <button class="btn" id="s3">Ещё раз</button>
+</div>
+
+<div id="sc">
+  <span class="lb">Ур: <span id="lvl">1</span>/5</span>
+  <span>Очки: <span id="score">0</span></span>
+  <span class="st">👥 <span id="tp">0</span></span>
+</div>
+
+<div id="c">
+  <div class="ci"><div class="cb" id="b0" style="background:#00f0f0"></div><span id="n0">0</span></div>
+  <div class="ci"><div class="cb" id="b1" style="background:#f0f000"></div><span id="n1">0</span></div>
+  <div class="ci"><div class="cb" id="b2" style="background:#a000f0"></div><span id="n2">0</span></div>
+  <div class="ci"><div class="cb" id="b3" style="background:#00f000"></div><span id="n3">0</span></div>
+  <div class="ci"><div class="cb" id="b4" style="background:#f00000"></div><span id="n4">0</span></div>
+</div>
+<div id="b"></div>
+<div class="ctrl">
+  <button id="left">←</button><button id="right">→</button><button id="rot">↻</button><button id="drop">↓</button>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#17212b');
+  tg.setBackgroundColor('#17212b');
+}
+
+// === ЗВУКИ (Web Audio API) ===
+let audioCtx;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playTone(freq, duration = 0.08, type = 'square', vol = 0.1) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+function soundMove() { playTone(220, 0.05, 'square', 0.08); }
+function soundRotate() { playTone(330, 0.06, 'square', 0.09); }
+function soundDrop() { playTone(180, 0.1, 'sawtooth', 0.12); }
+function soundLock() { playTone(150, 0.08, 'square', 0.1); }
+function soundLine() { playTone(440, 0.12, 'square', 0.15); setTimeout(() => playTone(550, 0.1), 60); }
+function soundSquare() { playTone(660, 0.15, 'square', 0.18); setTimeout(() => playTone(880, 0.12), 80); }
+function soundGameOver() { playTone(120, 0.4, 'sawtooth', 0.2); setTimeout(() => playTone(90, 0.5), 200); }
+function soundWin() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'square', 0.15), i * 120)); }
+
+try {
+const B=document.getElementById('b');
+const S = { l: [], s: 0, t: 0 };
+let L=S.l||[],SC=S.s||0,TP=0,SP=1,LV=1,SQ=[0,0,0,0,0],A=false,F=null,I=null,PI=-1;
+
+// Загружаем реальное количество игроков
+async function loadPlayers() {
+  try {
+    const res = await fetch('https://keen-gentleman-birth-whole.trycloudflare.com/players');
+    if (res.ok) {
+      const data = await res.json();
+      TP = data.count || 0;
+      document.getElementById('rp').textContent = TP;
+      document.getElementById('tp').textContent = TP;
+    }
+  } catch (e) {
+    console.warn('Не удалось загрузить игроков', e);
+    document.getElementById('rp').textContent = '—';
+    document.getElementById('tp').textContent = '—';
+  }
+}
+loadPlayers();
+const C=['#00f0f0','#f0f000','#a000f0','#00f000','#f00000'];
+const P=[[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[1,1],[1,1]],[[0,1,0],[1,1,1],[0,0,0]],[[0,1,1],[1,1,0],[0,0,0]],[[1,1,0],[0,1,1],[0,0,0]],[[1,0,0],[1,1,1],[0,0,0]],[[0,0,1],[1,1,1],[0,0,0]]];
+const LVS=[{c:[3],t:'Соберите <b style="color:#00f000">3 зелёных</b> квадрата'},{c:[3,4],t:'Соберите <b style="color:#00f000">3 зелёных</b> и <b style="color:#f00000">3 красных</b>'},{c:[4,0],t:'Соберите <b style="color:#f00000">3 красных</b> и <b style="color:#00f0f0">3 голубых</b>'},{c:[0,1],t:'Соберите <b style="color:#00f0f0">3 голубых</b> и <b style="color:#f0f000">3 жёлтых</b>'},{c:[1,2],t:'Соберите <b style="color:#f0f000">3 жёлтых</b> и <b style="color:#a000f0">3 фиолетовых</b>'}];
+const CS=[];for(let y=0;y<20;y++)for(let x=0;x<10;x++){const e=document.createElement('div');e.className='c';e.id=`c-${x}-${y}`;B.appendChild(e);CS.push({x,y,e})}
+function showL(){document.getElementById('lt').textContent=`Уровень ${LV}`;document.getElementById('lg').innerHTML=LVS[LV-1].t;document.getElementById('l').style.display='flex';A=false}
+document.getElementById('s2').onclick=()=>{initAudio();document.getElementById('l').style.display='none';A=true;spawn()};
+function timer(){if(I)clearInterval(I);I=setInterval(mv,Math.max(80,1000/SP))}
+function spawn(){if(!A)return;let p;do{p=Math.floor(Math.random()*P.length)}while(p===PI&&P.length>1);PI=p;const ci=Math.floor(Math.random()*5);F={x:3,y:0,sh:P[p],col:C[ci],ci:ci};if(hit(F.x,F.y,F.sh)){end();return}draw();timer()}
+function hit(px,py,sh){for(let r=0;r<sh.length;r++)for(let c=0;c<sh[r].length;c++)if(sh[r][c]){const x=px+c,y=py+r;if(x<0||x>=10||y>=20||L.some(b=>b.x===x&&b.y===y))return true}return false}
+function draw(){CS.forEach(c=>{c.e.className='c';c.e.style.backgroundColor=''});L.forEach(b=>{const e=document.getElementById(`c-${b.x}-${b.y}`);if(e){e.className='c blk';e.style.backgroundColor=C[b.ci]}});if(F)for(let r=0;r<F.sh.length;r++)for(let c=0;c<F.sh[r].length;c++)if(F.sh[r][c]){const e=document.getElementById(`c-${F.x+c}-${F.y+r}`);if(e){e.className='c blk';e.style.backgroundColor=F.col}}}
+function mv(){if(!F||!A)return;if(!hit(F.x,F.y+1,F.sh)){F.y++;draw()}else lock()}
+function grav(){let m=false;for(let y=18;y>=0;y--)for(let x=0;x<10;x++){const i=L.findIndex(b=>b.x===x&&b.y===y);if(i!==-1&&!L.some(b=>b.x===x&&b.y===y+1)){L[i].y++;m=true}}return m}
+function chk3(){for(let y=0;y<=17;y++)for(let x=0;x<=7;x++){let fc=null,sq=true;for(let dy=0;dy<3;dy++){for(let dx=0;dx<3;dx++){const c=L.find(b=>b.x===x+dx&&b.y===y+dy);if(!c){sq=false;break}if(fc===null)fc=c.ci;else if(c.ci!==fc){sq=false;break}}if(!sq)break}if(sq){SQ[fc]++;document.getElementById(`n${fc}`).textContent=SQ[fc];if(SQ[fc]>=1)document.getElementById(`b${fc}`).classList.add('done');for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++)L=L.filter(b=>!(b.x===x+dx&&b.y===y+dy));SC+=500;
+  SP = 1;
+  soundSquare();
+  return true}}return false}
+function chkL(){const r=LVS[LV-1].c;let done=true;for(let c of r)if(SQ[c]<3){done=false;break}if(done){if(LV<5){LV++;SC+=2000;SP+=.3;document.getElementById('lvl').textContent=LV;document.getElementById('score').textContent=SC;SQ=[0,0,0,0,0];for(let i=0;i<5;i++){document.getElementById(`n${i}`).textContent='0';document.getElementById(`b${i}`).classList.remove('done')}clearInterval(I);F=null;draw();showL()}else end(true)}}
+function lock(){if(!F)return;soundLock();for(let r=0;r<F.sh.length;r++)for(let c=0;c<F.sh[r].length;c++)if(F.sh[r][c])L.push({x:F.x+c,y:F.y+r,ci:F.ci});F=null;clearInterval(I);let fl=[];for(let y=19;y>=0;y--)if(L.filter(b=>b.y===y).length===10)fl.push(y);if(fl.length>0){soundLine();let lb=0;fl.forEach(y=>{const rb=L.filter(b=>b.y===y);const fc=rb[0].ci;if(rb.every(b=>b.ci===fc))lb+=100});L=L.filter(b=>!fl.includes(b.y));fl.sort((a,b)=>a-b).forEach(y=>{L=L.map(b=>b.y<y?{...b,y:b.y+1}:b)});SC+=fl.length*fl.length*100+lb;SP+=.1}let he=chk3();while(he){grav();he=chk3()}chkL();document.getElementById('score').textContent=SC;draw();setTimeout(()=>{if(A)spawn()},300)}
+function drop(){if(!F||!A)return;soundDrop();clearInterval(I);while(!hit(F.x,F.y+1,F.sh))F.y++;draw();lock()}
+function rot(){if(!F||!A)return;const sz=F.sh.length,ns=Array(sz).fill().map(()=>Array(sz).fill(0));for(let y=0;y<sz;y++)for(let x=0;x<sz;x++)ns[x][sz-1-y]=F.sh[y][x];if(!hit(F.x,F.y,ns)){F.sh=ns;draw();soundRotate()}}
+function end(w=false){A=false;F=null;clearInterval(I);draw();document.getElementById('fs').textContent=SC;document.getElementById('fl').textContent=w?'🏆 Вы прошли все 5 уровней!':`Достигнут уровень: ${LV}`;document.getElementById('g').querySelector('h2').textContent=w?'Победа!':'Игра окончена!';document.getElementById('g').style.display='flex'; if(w) soundWin(); else soundGameOver();}
+function reset(){L=[];SC=0;SP=1;LV=1;SQ=[0,0,0,0,0];document.getElementById('score').textContent='0';document.getElementById('lvl').textContent='1';for(let i=0;i<5;i++){document.getElementById(`n${i}`).textContent='0';document.getElementById(`b${i}`).classList.remove('done')}document.getElementById('g').style.display='none';document.getElementById('r').style.display='none';showL()}
+document.getElementById('left').onclick=()=>{initAudio();if(F&&A&&!hit(F.x-1,F.y,F.sh)){F.x--;draw();soundMove()}};
+document.getElementById('right').onclick=()=>{initAudio();if(F&&A&&!hit(F.x+1,F.y,F.sh)){F.x++;draw();soundMove()}};
+document.getElementById('rot').onclick=()=>{initAudio();rot()};
+document.getElementById('drop').onclick=()=>{initAudio();drop()};
+document.getElementById('s1').onclick=()=>{initAudio();document.getElementById('r').style.display='none';showL()};
+document.getElementById('s3').onclick=reset;
+} catch(e) { alert("Ошибка: " + e.message); }
+</script>
+</body>
+</html>
