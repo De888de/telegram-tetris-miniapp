@@ -8,3 +8,5 @@ webapp/*.bak*
 webapp/cloudflared.exe
 webapp/fix3d.js
 webapp/patch3d.js
+node_modules/
+bot/node_modules/
