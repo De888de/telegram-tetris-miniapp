@@ -1,3 +1,6 @@
 bot/.env
 bot/.env.*
 *.env
+node_modules/
+bot/node_modules/
+webapp/node_modules/
