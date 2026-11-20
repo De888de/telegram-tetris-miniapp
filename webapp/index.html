@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Тетрис</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
     body{margin:0;background:#17212b;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;padding-bottom:20px}
-    #b{display:grid;grid-template-columns:repeat(10,20px);grid-template-rows:repeat(20,20px);gap:1px;background:#232e3c;padding:2px;margin-top:10px}
+    #b{display:none;grid;grid-template-columns:repeat(10,20px);grid-template-rows:repeat(20,20px);gap:1px;background:#232e3c;padding:2px;margin-top:10px}
     .c{width:20px;height:20px;background:#0e1621}
     .blk{background:#007bff}
     .ctrl{margin-top:15px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;width:220px}
@@ -27,9 +29,81 @@
     .st{color:#007bff;font-weight:bold}
     .lb{background:#a000f0;padding:2px 8px;border-radius:10px;color:#fff;font-weight:bold}
     .goal{font-size:14px;line-height:1.5;max-width:320px;text-align:left;margin:10px 0}
-  </style>
+  
+#rotBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#scene3d { position: relative !important; overflow: hidden; }
+#scene3d video {
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0.5;
+  pointer-events: none;
+}
+#scene3d canvas {
+  position: absolute !important;
+  inset: 0;
+  z-index: 10 !important;
+  background: transparent !important;
+}
+
+<style>
+#scene3d {
+  position: relative !important;
+  width: 320px;
+  height: 520px;
+  margin: 10px auto;
+  border: 1px solid #007bff;
+  overflow: hidden;
+  background: #000;
+}
+#scene3d video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0.6;
+}
+#scene3d canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 5;
+  background: transparent !important;
+}
+</style>
+</style>
 </head>
 <body>
+
+<video id="bgVideo" autoplay loop muted playsinline style="position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:0.4;">
+  <source src="b.mp4" type="video/mp4">
+</video>
+
+
+
+
 <div id="deltaSplash" style="position:fixed;inset:0;background:#000;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column">
   <div style="font-size:72px;color:#00ff41;font-family:monospace;text-shadow:0 0 20px #00ff41">Δ</div>
   <div style="color:#00ff41;font-size:12px;margin-top:8px;letter-spacing:4px">DELTA</div>
@@ -144,7 +218,7 @@ document.getElementById('s2').onclick=()=>{initAudio();document.getElementById('
 function timer(){if(I)clearInterval(I);I=setInterval(mv,Math.max(80,1000/SP))}
 function spawn(){if(!A)return;let p;do{p=Math.floor(Math.random()*P.length)}while(p===PI&&P.length>1);PI=p;const ci=Math.floor(Math.random()*5);F={x:3,y:0,sh:P[p],col:C[ci],ci:ci};if(hit(F.x,F.y,F.sh)){end();return}draw();timer()}
 function hit(px,py,sh){for(let r=0;r<sh.length;r++)for(let c=0;c<sh[r].length;c++)if(sh[r][c]){const x=px+c,y=py+r;if(x<0||x>=10||y>=20||L.some(b=>b.x===x&&b.y===y))return true}return false}
-function draw(){CS.forEach(c=>{c.e.className='c';c.e.style.backgroundColor=''});L.forEach(b=>{const e=document.getElementById(`c-${b.x}-${b.y}`);if(e){e.className='c blk';e.style.backgroundColor=C[b.ci]}});if(F)for(let r=0;r<F.sh.length;r++)for(let c=0;c<F.sh[r].length;c++)if(F.sh[r][c]){const e=document.getElementById(`c-${F.x+c}-${F.y+r}`);if(e){e.className='c blk';e.style.backgroundColor=F.col}}}
+function draw(){ if(typeof drawBoard3D==='function'){const board=Array(20).fill().map(()=>Array(10).fill(0)); L.forEach(b=>{if(b.y>=0&&b.y<20&&b.x>=0&&b.x<10)board[b.y][b.x]=b.ci+1}); if(F)for(let r=0;r<F.sh.length;r++)for(let c=0;c<F.sh[r].length;c++)if(F.sh[r][c]&&F.y+r>=0&&F.y+r<20&&F.x+c>=0&&F.x+c<10)board[F.y+r][F.x+c]=F.ci+1; drawBoard3D(board);} CS.forEach(c=>{c.e.className='c';c.e.style.backgroundColor=''});L.forEach(b=>{const e=document.getElementById(`c-${b.x}-${b.y}`);if(e){e.className='c blk';e.style.backgroundColor=C[b.ci]}});if(F)for(let r=0;r<F.sh.length;r++)for(let c=0;c<F.sh[r].length;c++)if(F.sh[r][c]){const e=document.getElementById(`c-${F.x+c}-${F.y+r}`);if(e){e.className='c blk';e.style.backgroundColor=F.col}}}
 function mv(){if(!F||!A)return;if(!hit(F.x,F.y+1,F.sh)){F.y++;draw()}else lock()}
 function grav(){let m=false;for(let y=18;y>=0;y--)for(let x=0;x<10;x++){const i=L.findIndex(b=>b.x===x&&b.y===y);if(i!==-1&&!L.some(b=>b.x===x&&b.y===y+1)){L[i].y++;m=true}}return m}
 function chk3(){for(let y=0;y<=17;y++)for(let x=0;x<=7;x++){let fc=null,sq=true;for(let dy=0;dy<3;dy++){for(let dx=0;dx<3;dx++){const c=L.find(b=>b.x===x+dx&&b.y===y+dy);if(!c){sq=false;break}if(fc===null)fc=c.ci;else if(c.ci!==fc){sq=false;break}}if(!sq)break}if(sq){SQ[fc]++;document.getElementById(`n${fc}`).textContent=SQ[fc];if(SQ[fc]>=1)document.getElementById(`b${fc}`).classList.add('done');for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++)L=L.filter(b=>!(b.x===x+dx&&b.y===y+dy));SC+=500;SP=1;soundSquare();return true}}return false}
@@ -161,6 +235,120 @@ document.getElementById('drop').onclick=()=>{initAudio();drop()};
 document.getElementById('s1').onclick=()=>{initAudio();document.getElementById('r').style.display='none';showL()};
 document.getElementById('s3').onclick=reset;
 } catch(e) { alert("Ошибка: " + e.message); }
+</script>
+
+<button id="rotBtn" style="display:block;margin:10px auto;padding:10px 20px;background:#007bff;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;box-shadow:0 4px 0 #0056b3;transition:0.1s;">Вращение: Вкл</button>
+<div id="scene3d" style="width:320px;height:520px;margin:10px auto;border:1px solid #007bff;position:relative;overflow:hidden;background:#000;">
+  <video id="fieldVideo" autoplay loop muted playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0.6;pointer-events:none;">
+    <source src="b.mp4" type="video/mp4">
+  </video>
+  <div id="canvas3d" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;"></div>
+</div>
+
+
+
+<script>
+let renderer3d, scene3d, camera3d, group3d;
+let rotate3d = true;
+
+function init3D() {
+  const el = document.getElementById('scene3d');
+  if (!el || typeof THREE === 'undefined') { console.log('3D: нет контейнера или THREE'); return; }
+
+  scene3d = new THREE.Scene();
+  camera3d = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  renderer3d = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer3d.setClearColor(0x000000, 0);
+  renderer3d.domElement.style.background = "transparent";
+  renderer3d.shadowMap.enabled = true;
+  renderer3d.setSize(320, 520);
+  el.innerHTML = '';
+  el.appendChild(renderer3d.domElement);
+  el.style.display = 'block';
+
+  scene3d.add(new THREE.AmbientLight(0x888888));
+  const dir = new THREE.DirectionalLight(0xffffff, 1);
+  dir.castShadow = true;
+  dir.shadow.mapSize.width = 1024;
+  dir.shadow.mapSize.height = 1024;
+  dir.position.set(5, 10, 5);
+  scene3d.add(dir);
+
+  group3d = new THREE.Group();
+  
+  // Видео-плоскость
+  const video = document.createElement('video');
+  video.src = 'b.mp4';
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.crossOrigin = 'anonymous';
+  video.play().then(() => console.log('Video OK')).catch(e => console.log('Video err:', e));
+  
+  const videoTex = new THREE.VideoTexture(video);
+  videoTex.needsUpdate = true;
+  
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(12, 16),
+    new THREE.MeshBasicMaterial({ map: videoTex, side: THREE.DoubleSide })
+  );
+  plane.position.set(0, 0, -5);
+  scene3d.add(plane);
+  console.log('Plane added');
+
+  scene3d.add(group3d);
+
+  camera3d.position.set(0, 1, 28);
+  camera3d.lookAt(0, 0, 0);
+  camera3d.lookAt(0, 0, 0);
+
+  function loop() {
+    requestAnimationFrame(loop);
+    if (group3d && rotate3d) group3d.rotation.y += 0.003;
+    renderer3d.render(scene3d, camera3d);
+  }
+  loop();
+  console.log('3D инициализирован');
+}
+
+function drawBoard3D(board) {
+  if (!group3d) return;
+  while (group3d.children.length) group3d.remove(group3d.children[0]);
+
+  const cols = [0x00f0f0, 0xf0f000, 0xa000f0, 0x00f000, 0xf00000, 0x0000f0, 0xff8000];
+  let count = 0;
+  for (let y = 0; y < 20; y++) {
+    for (let x = 0; x < 10; x++) {
+      const v = board[y] && board[y][x];
+      if (v) {
+        const m = new THREE.Mesh(
+          new THREE.BoxGeometry(0.9, 0.9, 0.9),
+          new THREE.MeshLambertMaterial({ color: cols[(v-1) % cols.length] })
+        );
+        m.position.set(x - 4.5, 9.5 - y, 0);
+        m.castShadow = true;
+        m.receiveShadow = true;
+        group3d.add(m);
+        count++;
+      }
+    }
+  }
+  console.log('3D кубиков:', count);
+}
+
+
+document.getElementById('rotBtn').onclick = () => {
+  rotate3d = !rotate3d;
+  document.getElementById('rotBtn').textContent = rotate3d ? 'Вращение: Вкл' : 'Вращение: Выкл';
+};
+
+
+setTimeout(() => {
+  const v = document.querySelector('#scene3d video');
+  if (v) v.play().catch(e => console.log('Video play error:', e));
+}, 500);
+
+setTimeout(init3D, 600);
 </script>
 </body>
 </html>
